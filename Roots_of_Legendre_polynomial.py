@@ -2,19 +2,18 @@ from pylab import *
 import numpy as np
 
 def bisec(a,b,f,tol): #Bisection method
-    t = abs(a-b)
-    m=(a+b)/2
-    while t>=tol:
+    fa = f(a)
+    while abs(a-b)>=tol:
         m=(a+b)/2
-        if f(m) == 0:
-            x=m
-        if sign(f(m)*f(a))<0:
+        fm = f(m)
+        if fm == 0:
+            return m
+        if sign(fm*fa)<0:
             b = m
         else:
             a=m
-        t = abs(a-b)
-        x=m
-    return x
+            fa = fm #this condition is actually useless, we can delete it, bc in this particular case sign(f(a))=sign(f(m)) 
+    return m
    
 def sign_count(L):  #Counts number of sign changes in a list L
     c=0
@@ -25,14 +24,15 @@ def sign_count(L):  #Counts number of sign changes in a list L
         	s=sign(i)
     return c
 
-def legendre_polynomial(n,x):
+def legendre_polynomial(n,x):  #Definition of n'th legendre polynomial  as recursive function, here it is stored in a list
     for k in range(n):
         L= [1,x]
         for j in range(1,n):
         	t=x*L[j]-(j)**2/float(4*(j)**2-1)*L[j-1]
         	L.append(t)
     return L
-def Ln(n,x):
+
+def Ln(n,x):  #Definition of n'th legendre polynomial  as a function of n and x
     if (n==0):
         return 1
     elif(n==1):
