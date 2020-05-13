@@ -1,8 +1,11 @@
 from pylab import *
 import numpy as np
+import math
 
 def bisec(a,b,f,tol): #Bisection method
+
     fa = f(a)
+    m=(a+b)/2
     while abs(a-b)>=tol:
         m=(a+b)/2
         fm = f(m)
@@ -14,8 +17,18 @@ def bisec(a,b,f,tol): #Bisection method
             a=m
             fa = fm #this condition is actually useless, we can delete it, bc in this particular case sign(f(a))=sign(f(m)) 
     return m
+
+def horner(poly, x):
+    
+        n = len(poly)    
+        result = poly[0]
+        for i in range(1,n):
+            result = result*x+poly[i]
+        return result 
+
    
 def sign_count(L):  #Counts number of sign changes in a list L
+    
     c=0
     s=sign(L[0])
     for i in L[1:]:
@@ -25,6 +38,7 @@ def sign_count(L):  #Counts number of sign changes in a list L
     return c
 
 def legendre_polynomial(n,x):  #Definition of n'th legendre polynomial  as recursive function, here it is stored in a list
+
     for k in range(n):
         L= [1,x]
         for j in range(1,n):
@@ -32,43 +46,40 @@ def legendre_polynomial(n,x):  #Definition of n'th legendre polynomial  as recur
         	L.append(t)
     return L
 
-def Ln(n,x):  #Definition of n'th legendre polynomial  as a function of n and x
-    if (n==0):
-        return 1
-    elif(n==1):
-        return x
-    else:
-        return x*Ln(n-1,x)-(n-1)**2/float(4*(n-1)**2-1)*Ln(n-2,x)
-
-def leg_root2(i,n):     #i'th  root of n'th legendre polynomial using Bisection method
+def LnHorner(n):  #Definition of n'th legendre polynomial  using Horner's method
+    oldzeros=[]
+    zeros=[]
     a = -1
     b = 1
     tol = 10**(-7)
-    Leg = lambda x: Ln(n,x)
-    
-    if i>n:
-        print('error, i has to be <=n')
-    if n==0:
-        print('n should be positive')
-    elif n==1:
-        x = 0
-    elif i == n:
-        a = leg_root2(i-1,n-1)
-        b =2*a+1
-        x = bisec(a,b,Leg,tol)
-    elif i==1:
-        b = leg_root2(i,n-1)
-        a = 2*b-1
-        x = bisec(a,b,Leg,tol)
-    else:
-        a = leg_root2(i-1,n-1)
-        b= leg_root2(i,n-1)
-        x = bisec(a,b,Leg,tol)
-    return x
+    if (n==0):
+        poly = [1]
+    elif(n==1):
+        poly = [1,0]
+        zeros=[0]
+        
+    else:   
+        poly = [1, 0]
+        zeros=[0]      
+        polyminus1 = [1]
+        polyminus2 = []
+       
+        for i in range(2,n+1):
+            polyminus2 = polyminus1
+            polyminus1 = poly
+            polyminus1.extend([0])
+            polyminus2[:0]=[0,0]  
+            poly= [x-( (i-1)**2/(4*(i-1)**2-1) )*y for x, y in zip(polyminus1, polyminus2)]
+            zeros.append(b)
+            oldzeros.extend(zeros)
+            oldzeros.insert(0,a)
+            Leg = lambda x: horner(poly, x)
+            for j in range(i):
+                zeros[j] = bisec(oldzeros[j],oldzeros[j+1],Leg,tol)
+    return poly, zeros
+
    
 def leg_root1(i,n):    #i'th  root of n'th legendre polynomial using the sign changes
-    
-    i=n-i+1
     a = -1
     b = 1
     tol = 10**(-7)
@@ -81,6 +92,11 @@ def leg_root1(i,n):    #i'th  root of n'th legendre polynomial using the sign ch
         else:
             b = x
     return x
+
+#main
+if __name__ == '__main__':
     
-print('using the sign changes',leg_root1(8,10))
-print('using Bisection',leg_root2(8,10))
+    print('using the sign changes',leg_root1(8,10))
+    poly, zeros = LnHorner(10)
+    print('using Bisection',zeros[8])
+   
